@@ -216,7 +216,7 @@ MODULE common_nml
   logical :: H08_CLD_OBSERR_BSPRD2 = .false. ! Output background spread**2 in obs space as a function of CA ! ?? not used
   logical :: H08_RTTOV_EXTRA_US76 = .false.
 
-  integer :: H08_CH_USE(nch) = (/0,0,1,0,0,0,0,0,0,0/)
+  integer :: H08_CH_USE(nch) = (/0,0,0,0,0,0,0,0,0,0/)
                         !! ch = (1,2,3,4,5,6,7,8,9,10)
                         !! (B07,B08,B09,B10,B11,B12,B13,B14,B15,B16)
                         !! ==1: Assimilate

@@ -1290,16 +1290,15 @@ SUBROUTINE write_ensmspr_mpi(file_mean,file_sprd,v3d,v2d,obs,obsda2)
           Him8_OB_l = Him8_OAB_l
           Him8_CA_OB_l = Him8_iCA_l
         endif
+#endif
+      endif ! [DEPARTURE_STAT_H08_ALL .or. H08_CLD_OBSERR]
 
-        !WRITE(6,'(a)')"HIM8 DEBUG: start monit_obs"
-        call monit_obs(v3dg,v2dg,obs,obsda2(PRC_myrank),topo,nobs,bias,rmse,monit_type,&
-                       nHim8_obsda,nobs_H08,bias_H08,rmse_H08,Him8_OAB_l,&
-                       Him8_iCA_l,Him8_bias_CA_in)
-        !WRITE(6,'(a)')"HIM8 DEBUG: end monit_obs"
+      call monit_obs(v3dg,v2dg,obs,obsda2(PRC_myrank),topo,nobs,bias,rmse,monit_type,&
+                     nHim8_obsda,nobs_H08,bias_H08,rmse_H08,Him8_OAB_l,&
+                     Him8_iCA_l,Him8_bias_CA_in)
  
-        !WRITE(6,'(a)')"HIM8 DEBUG should be the same number"
-        !WRITE(6,'(a,2i7)')"HIM8 DEBUG:",nHim8_obsda,sum(nobs_H08(:))
-
+      if(DEPARTURE_STAT_H08_ALL .or. H08_CLD_OBSERR)then
+#ifdef H08
         ! Compute Him8 bias as a function of CA
         Him8_bias_CA_l = 0.0d0
         Him8_OB2_CA_l = 0.0d0
@@ -1440,7 +1439,6 @@ SUBROUTINE write_ensmspr_mpi(file_mean,file_sprd,v3d,v2d,obs,obsda2)
             rmse_H08_g(i) = sqrt(rmse_H08_g(i) / REAL(nobs_H08_g(i),r_size))
           end if
         enddo ! nch
-
 #endif
       endif ! [DEPARTURE_STAT_H08_ALL .or. H08_CLD_OBSERR]
 

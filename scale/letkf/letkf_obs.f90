@@ -713,7 +713,7 @@ SUBROUTINE set_letkf_obs
 
   write(6,'(a,i9)')"nHim8_obsda0:",nHim8_obsda
   write(6,'(a,i9)')"nHim8_obsda01:",sum(H08_CH_USE(:))
-  write(6,'(a,i9)')"nHim8_obsda02:",nHim8_obsda / sum(H08_CH_USE(:))
+  write(6,'(a,i9)')"nHim8_obsda02:",nHim8_obsda / max(sum(H08_CH_USE(:)),1)
   if(sum(H08_CH_USE(:)) == 0)then
     nHim8_obsda = nch
   else
