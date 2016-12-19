@@ -208,8 +208,6 @@ MODULE common_nml
 
   real(r_size) :: H08_CLD_OBSERR_GROSS_ERR = 20.0d0
   integer :: H08_CLD_OBSERR_MIN_SAMPLE = 500
-  logical :: H08_DEBIAS_AMEAN = .false.
-  logical :: H08_DEBIAS_CA = .false.
   integer :: H08_DEBIAS_CA_MIN_SAMPLE = 500
   logical :: H08_DEBIAS_CA_CLR = .false.
   logical :: H08_CLD_OBSERR_OB2 = .false. ! Maximum threshold for Him8 obs err using sqrt([O-B]**2)
@@ -646,8 +644,6 @@ subroutine read_nml_letkf_h08
     H08_CLD_OBSERR_GROSS_ERR,  &
     H08_CLD_OBSERR_MIN_SAMPLE, &
     H08_CLD_OBSERR_MTIME,      &
-    H08_DEBIAS_AMEAN,          &
-    H08_DEBIAS_CA,             &
     H08_DEBIAS_CA_CLR,         &
     H08_DEBIAS_CA_MIN_SAMPLE,  &
     H08_CLD_OBSERR_OB2,        &

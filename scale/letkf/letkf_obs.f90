@@ -289,6 +289,9 @@ SUBROUTINE set_letkf_obs
 !-- H08
 ! calculate the ensemble mean of obsda%lev
 !
+! Derived H08 obs height (based on the weighting function output from RTTOV fwd
+! model) is substituted into obs%lev.
+!
   allocate (bufr2(obsda%nobs))
   bufr2 = 0.0d0
   CALL MPI_BARRIER(MPI_COMM_e,ierr)
@@ -298,7 +301,8 @@ SUBROUTINE set_letkf_obs
 
   obsda%lev = obsda%lev / REAL(MEMBER,r_size)
 
-! calculate the ensemble mean of obsda%val2 (cloud effect parameter, CA; Okamoto et al. 2014QJRMS)
+!
+! calculate the ensemble mean of obsda%val2 (clear-sky brightness temperature)
 !
   allocate (bufr2(obsda%nobs))
   bufr2 = 0.0d0
@@ -589,15 +593,36 @@ SUBROUTINE set_letkf_obs
         obsda%qc(n) = iqc_gross_err
       END IF
     case (id_H08IR_obs)
-      IF(H08_CLD_OBSERR)THEN
-        IF(ABS(obsda%val(n)) > H08_CLD_OBSERR_GROSS_ERR)THEN
-          obsda%qc(n) = iqc_gross_err
-        ENDIF
-      ELSE
-        IF(ABS(obsda%val(n)) > GROSS_ERROR_H08 * obs(iof)%err(iidx)) THEN
-          obsda%qc(n) = iqc_gross_err
-        END IF
-      ENDIF
+!
+! Cloud-dependent obs err & (clear-sky) bias correction (Okamoto et al. 2014QJRMS; Harnisch et al. 2016QJRMS)
+!
+      ! Assign dynamic observation error
+      ch_num = nint(obs(iof)%lev(iidx)) - 6 ! 1-10
+      if(H08_CLD_OBSERR)then
+        idx_CA = max(min(H08_CLD_OBSERR_NBIN, int(obsda%val2(n) / H08_CLD_OBSERR_WTH + 1)),1)
+        Him8_err = max(min(Him8_obserr_CA(ch_num,idx_CA),OBSERR_H08_MAX),OBSERR_H08_MIN)
+      else
+        Him8_err = obs(iof)%err(iidx)
+      endif
+
+      if(H08_OB_OBSERR)then
+        Him8_err = min(max(abs(obsda%val(n)),OBSERR_H08_MIN),OBSERR_H08_MAX)
+      endif
+
+      ! Get clear-sky bias correction coefficient
+      if(H08_DEBIAS_CA_CLR .and. H08_CLD_OBSERR)then
+        Him8_bias(ch_num) = Him8_bias_CA(ch_num,idx_CA)
+      else
+        Him8_bias(ch_num) = 0.0d0
+      endif
+
+      ! debias
+      obsda%val(n) = obsda%val(n) - Him8_bias(ch_num) 
+      
+      ! Gross-error check
+      IF(ABS(obsda%val(n)) > GROSS_ERROR_H08 * Him8_err) THEN
+        obsda%qc(n) = iqc_gross_err
+      END IF
       IF(obs(iof)%dat(iidx) < H08_BT_MIN)THEN
         obsda%qc(n) = iqc_gross_err
       ENDIF
@@ -624,31 +649,6 @@ SUBROUTINE set_letkf_obs
 
 #ifdef H08
       IF(DEPARTURE_STAT_H08)THEN
-!
-! Derived H08 obs height (based on the weighting function output from RTTOV fwd
-! model) is substituted into obs%lev.
-!
-!
-! For obs err correlation statistics based on Desroziers et al. (2005, QJRMS).
-!
-
-        ch_num = nint(obs(iof)%lev(iidx)) - 6 ! 1-10
-        if(H08_CLD_OBSERR)then
-          idx_CA = max(min(H08_CLD_OBSERR_NBIN, int(obsda%val2(n) / H08_CLD_OBSERR_WTH + 1)),1)
-          Him8_err = max(min(Him8_obserr_CA(ch_num,idx_CA),OBSERR_H08_MAX),OBSERR_H08_MIN)
-        else
-          Him8_err = obs(iof)%err(iidx)
-        endif
-
-        if((H08_DEBIAS_CA .or. H08_DEBIAS_CA_CLR ).and.H08_CLD_OBSERR)then
-          Him8_bias(ch_num) = Him8_bias_CA(ch_num,idx_CA)
-        else
-          Him8_bias(ch_num) = 0.0d0
-        endif
-
-        if(H08_OB_OBSERR)then
-          Him8_err = min(max(abs(obsda%val(n)),OBSERR_H08_MIN),OBSERR_H08_MAX)
-        endif
 
         if (myrank_e == lastmem_rank_e) then
           write(6, '(a,2I5,2F7.2,F10.2,2F10.4,F7.2,I5,F9.4,2F10.4)')"Him8-O-B", &
@@ -721,82 +721,6 @@ SUBROUTINE set_letkf_obs
   endif
   write(6,'(a,i9)')"nHim8_obsda1:",nHim8_obsda
 
-  if(H08_DEBIAS_CA .or. H08_DEBIAS_CA_CLR)then
-!    write(6,'(a)')" ## start Him8 debias depending on CA"
-
-    if(H08_DEBIAS_CA_CLR)then
-!      write(6,'(a)')" ## start Him8 debias by clear sky bias (lowest CA)"
-    endif
-!$OMP PARALLEL DO SCHEDULE(DYNAMIC) PRIVATE(n,iof,iidx,ch_num,idx_CA)
-    do n = 1, obsda%nobs
-      IF(obsda%qc(n) > 0) CYCLE
-      iof = obsda%set(n)
-      iidx = obsda%idx(n)
-
-      select case (obs(iof)%elm(iidx)) 
-      case (id_H08IR_obs)
-        ch_num = nint(obs(iof)%lev(iidx)) - 6 ! 1-10
-        if(H08_CH_USE(ch_num)/=1) cycle
-        idx_CA = max(min(H08_CLD_OBSERR_NBIN, int(obsda%val2(n) / H08_CLD_OBSERR_WTH + 1)),1)
-        if(H08_DEBIAS_CA_CLR)then
-          obsda%val(n) = obsda%val(n) - Him8_bias_CA(ch_num,1)
-        elseif(H08_DEBIAS_CA)then
-          obsda%val(n) = obsda%val(n) - Him8_bias_CA(ch_num,idx_CA)
-        endif
-      case default
-        cycle
-      end select
-    enddo ! [ n = 1, obsda%nobs ]
-!$OMP END PARALLEL DO
-
-  elseif(H08_DEBIAS_AMEAN)then
-    write(6,'(a)')" ## start Him8 debias"
-    Him8_bcnt_tmp = 0
-    Him8_bias_tmp = 0.0d0
-    do n = 1, obsda%nobs
-      IF(obsda%qc(n) > 0) CYCLE
-      iof = obsda%set(n)
-      iidx = obsda%idx(n)
-
-      select case (obs(iof)%elm(iidx)) 
-      case (id_H08IR_obs)
-        ch_num = nint(obs(iof)%lev(iidx)) - 6 ! 1-10
-        if(H08_CH_USE(ch_num)/=1) cycle
-
-        Him8_bcnt_tmp(ch_num) = Him8_bcnt_tmp(ch_num) + 1
-        Him8_bias_tmp(ch_num) = Him8_bias_tmp(ch_num) + obsda%val(n)
-      case default
-        cycle
-      end select
-    enddo ! [ n = 1, obsda%nobs ]
-
-    call MPI_ALLREDUCE(Him8_bcnt_tmp, Him8_bcnt, nch, MPI_INTEGER, MPI_SUM, MPI_COMM_d, ierr)  
-    call MPI_ALLREDUCE(Him8_bias_tmp, Him8_bias, nch, MPI_r_size, MPI_SUM, MPI_COMM_d, ierr)  
-
-    do n = 1, nch
-      if(H08_CH_USE(n) /= 1 .or. Him8_bcnt(n) < 1) cycle
-      Him8_bias(n) = Him8_bias(n) / real(Him8_bcnt(n),kind=r_size)
-      write(6,'(a,f8.2,i3,i5)')" ## O-B Him8 bias", Him8_bias(n), n+6,Him8_bcnt(n)
-    enddo
-
-    do n = 1, obsda%nobs
-      IF(obsda%qc(n) > 0) CYCLE
-      iof = obsda%set(n)
-      iidx = obsda%idx(n)
-
-      select case (obs(iof)%elm(iidx)) 
-      case (id_H08IR_obs)
-        ch_num = nint(obs(iof)%lev(iidx)) - 6 ! 1-10
-        if(H08_CH_USE(ch_num)/=1) cycle
-
-        obsda%val(n) = obsda%val(n) - Him8_bias(ch_num)
-      case default
-        cycle
-      end select
-    enddo ! [ n = 1, obsda%nobs ]
- 
-  endif 
-  write(6,'(a)')" ## End Him8 debias"
 #endif
 
 !!

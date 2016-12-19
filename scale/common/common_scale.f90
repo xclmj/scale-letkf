@@ -1032,13 +1032,12 @@ subroutine read_Him8_CA(Him8_obserr_CA,Him8_bias_CA)
   REAL(r_size) :: tmp_Him8_BSPRD2_CA(nch,H08_CLD_OBSERR_NBIN) ! Him8 background spread**2 in obs space as a function of CA
   INTEGER :: tmp_nHim8_CA(nch,H08_CLD_OBSERR_NBIN) ! Number of Him8 obs as a function of CA
 
-  REAL(r_size) :: obsbin(H08_CLD_OBSERR_NBIN)
   INTEGER :: ch, i, it, nb
   INTEGER,PARAMETER :: maxit = 100
-  LOGICAL :: ex
   character(3) :: B3
 
   INTEGER :: ios, mrec_A, mrec_B
+  INTEGER :: idx_MAX_CA
   REAL(r_size) :: tmp_wk(H08_CLD_OBSERR_NBIN)
   character(12) :: obsbin_show(H08_CLD_OBSERR_NBIN)
   character(12) :: sHim8_OAB_CA_show(H08_CLD_OBSERR_NBIN)
@@ -1130,15 +1129,13 @@ subroutine read_Him8_CA(Him8_obserr_CA,Him8_bias_CA)
 
         ! Him8 bias
         Him8_bias_CA(ch,nb) = 0.0d0
-        if(H08_DEBIAS_CA_CLR .or. H08_DEBIAS_CA)then
+        if(H08_DEBIAS_CA_CLR)then
           if(tmp_nHim8_CA(ch,nb) >= H08_DEBIAS_CA_MIN_SAMPLE)then
             Him8_bias_CA(ch,nb) = tmp_Him8_bias_CA(ch,nb) / real(tmp_nHim8_CA(ch,nb),kind=r_size)
           else
-            if(H08_DEBIAS_CA_CLR)then
-              ! Even if the sample size is less than H08_CLD_OBSERR_MIN_SAMPLE, 
-              ! clear-sky bias (nb=1) is considered.
-              Him8_bias_CA(ch,nb) = Him8_bias_CA(ch,1) 
-            endif
+            ! Even if the sample size is less than H08_CLD_OBSERR_MIN_SAMPLE, 
+            ! clear-sky bias (nb=1) is considered.
+            Him8_bias_CA(ch,nb) = Him8_bias_CA(ch,1) 
           endif
         endif
 
@@ -1152,16 +1149,34 @@ subroutine read_Him8_CA(Him8_obserr_CA,Him8_bias_CA)
 
       enddo ! nb
 
+      write(6,'(a)')"Him8 LOG: Num, Obserr (Desrosiers), Bias, [O-B]**2, Spread(obs)"
+      do nb = 1, H08_CLD_OBSERR_NBIN
+         write(6,'(a,i9,4f7.1,2i4)')"Him8 LOG: ",tmp_nHim8_CA(ch,nb),&
+                                Him8_obserr_CA(ch,nb),Him8_bias_CA(ch,nb),&
+                                Him8_OB2_CA(ch,nb),Him8_BSPRD2_CA(ch,nb),nb,ch
+      enddo ! nb
+
       if(H08_CLD_OBSERR_OB2)then
-        do nb = 1, H08_CLD_OBSERR_NBIN
+
+        ! The largest O-B standard deviation (SD) in a range of nb=1 to nb=int(H08_CLD_OBSERR_NBIN/2) is assigned for the largest
+        ! observation error for Himawari-8 observation.
+        ! See Harnisch et al. 2016QJRMS; Okamoto (2016, personal comm.)
+        ! OB2 (O-B SD) is used because Desrosies et al. (2005)'s might underestimate observation errors (Cambell et al., 2016ISDA)
+        ! 
+
+        idx_MAX_CA = maxloc(Him8_OB2_CA(ch,1:int(H08_CLD_OBSERR_NBIN/2)),1)
+ 
+        do nb = 1, idx_MAX_CA - 1
           if(tmp_nHim8_CA(ch,nb) < H08_CLD_OBSERR_MIN_SAMPLE)then
             !Him8_obserr_CA(ch,nb) = min(Him8_obserr_CA(ch,nb), maxval(Him8_OB2_CA(ch,1:H08_CLD_OBSERR_NBIN)))
             Him8_obserr_CA(ch,nb) = min(max(Him8_OB2_CA(ch,nb),OBSERR_H08_MIN),OBSERR_H08_MAX)
           endif
         enddo ! nb
+
+        Him8_obserr_CA(ch,idx_MAX_CA:H08_CLD_OBSERR_NBIN) = min(max(Him8_OB2_CA(ch,idx_MAX_CA),OBSERR_H08_MIN),OBSERR_H08_MAX)
       endif
 
-      write(6,'(a)')"Him8 LOG: Num, Obserr, Bias, [O-B]**2, Spread(obs)"
+      write(6,'(a)')"Him8 LOG: Num, Obserr (assigned), Bias, [O-B]**2, Spread(obs)"
       do nb = 1, H08_CLD_OBSERR_NBIN
          write(6,'(a,i9,4f7.1,2i4)')"Him8 LOG: ",tmp_nHim8_CA(ch,nb),&
                                 Him8_obserr_CA(ch,nb),Him8_bias_CA(ch,nb),&

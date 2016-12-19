@@ -1676,8 +1676,6 @@ subroutine monit_obs(v3dg,v2dg,obs,obsda,topo,nobs,bias,rmse,monit_type,&
           if(H08_CLD_OBSERR)then
             if(H08_DEBIAS_CA_CLR)then
               ohx(n) = ohx(n) - Him8_bias_CA_in(band-6,1)
-            elseif(H08_DEBIAS_CA)then
-              ohx(n) = ohx(n) - Him8_bias_CA_in(band-6,idx_CA)
             endif
           endif
 !
@@ -1701,8 +1699,6 @@ subroutine monit_obs(v3dg,v2dg,obs,obsda,topo,nobs,bias,rmse,monit_type,&
               idx_CA = max(min(H08_CLD_OBSERR_NBIN, int(CA_H08(ns+ch) / H08_CLD_OBSERR_WTH + 1)),1)
               if(H08_DEBIAS_CA_CLR)then
                 ohx_H08(ns+ch) = ohx_H08(ns+ch) - Him8_bias_CA_in(ch,1)
-              elseif(H08_DEBIAS_CA)then
-                ohx_H08(ns+ch) = ohx_H08(ns+ch) - Him8_bias_CA_in(ch,idx_CA)
               endif
             endif
           enddo
