@@ -257,31 +257,23 @@ EOF
 
 # -- Cloud dependent obs err for Him8 --
 
-  BB_LIST="07 08 09 10 11 12 13 14 15 16"
-  for BB in ${BB_LIST} ; do
-    #pathin1="${OUTDIR}/Him8/Him8_ERR_CA_B${BB}_${STIME}.dat"
-    #pathin2="${SCRP_DIR}/Him8_ERR_CA_B${BB}_${STIME}.dat"
-    #pathin3="${OUTDIR}/${STIME}/log/Him8/Him8_ERR_CA_B${BB}_${STIME}.dat"
-    pathin1="${OUTDIR}/${STIME}/log/letkf/Him8_ERR_CA_A_B${BB}_${STIME}.dat" # update in 9/11
-    pathin2="${OUTDIR}/${STIME}/log/letkf/Him8_ERR_CA_B_B${BB}_${STIME}.dat" # update in 9/11
-    path1="Him8/Him8_ERR_CA_A_B${BB}_${STIME}.dat"
-    path2="Him8/Him8_ERR_CA_B_B${BB}_${STIME}.dat"
-    if [ -e ${pathin1} ] && [ -e ${pathin2} ]  ; then
-      echo "${pathin1}|${path1}" >> $STAGING_DIR/stagein.dat
-      echo "${pathin2}|${path2}" >> $STAGING_DIR/stagein.dat
-    #elif [ -e ${pathin2} ] ; then
-    #  echo "${pathin2}|${path}" >> $STAGING_DIR/stagein.dat
-    #elif [ -e ${pathin3} ] ; then
-    #  echo "${pathin3}|${path}" >> $STAGING_DIR/stagein.dat
-    #elif [ -e ${pathin4} ] ; then
-    #  echo "${pathin4}|${path}" >> $STAGING_DIR/stagein.dat
-    else
-      echo "[!Caution!] No Him8 input file!!"
-      echo $pathin1
-#      exit 1
-#      echo $pathin2
-    fi
-  done
+  if [ "$HIM8_AOBSE" = 'T' ] ; then
+
+    BB_LIST="07 08 09 10 11 12 13 14 15 16"
+    for BB in ${BB_LIST} ; do
+      pathin1="${OUTDIR}/${STIME}/log/letkf/Him8_ERR_CA_A_B${BB}_${STIME}.dat" # update in 9/11
+      pathin2="${OUTDIR}/${STIME}/log/letkf/Him8_ERR_CA_B_B${BB}_${STIME}.dat" # update in 9/11
+      path1="Him8/Him8_ERR_CA_A_B${BB}_${STIME}.dat"
+      path2="Him8/Him8_ERR_CA_B_B${BB}_${STIME}.dat"
+      if [ -e ${pathin1} ] && [ -e ${pathin2} ]  ; then
+        echo "${pathin1}|${path1}" >> $STAGING_DIR/stagein.dat
+        echo "${pathin2}|${path2}" >> $STAGING_DIR/stagein.dat
+      else
+        echo "[!Caution!] No Him8 input file!!"
+        echo $pathin1
+      fi
+    done
+  fi
 
   if [ "$TOPO_FORMAT" != 'prep' ]; then
     if ((DISK_MODE_TOPO_LANDUSE_DB == 2)); then
@@ -727,6 +719,8 @@ else
             path="${time}/log/scale_init/NOUT.${log_zeros}"
           fi
           echo "${OUTDIR}/${path}|${path}" >> $STAGING_DIR/${stgoutstep}.1
+
+
         else
           path="${time}/log/scale_pp"
           echo "${OUTDIR}/${path}|${path}|d" >> $STAGING_DIR/${stgoutstep}
@@ -763,6 +757,19 @@ else
           echo "${OUTDIR}/${path}|${path}" >> $STAGING_DIR/${stgoutstep}.1
           path="${atime}/log/letkf/NOUT.${log_zeros}"
           echo "${OUTDIR}/${path}|${path}" >> $STAGING_DIR/${stgoutstep}.1
+
+          if [ "$HIM8_AOBSE" = 'T' ] ; then
+            BB_LIST="07 08 09 10 11 12 13 14 15 16"
+            for BB in ${BB_LIST} ; do
+              path="${atime}/log/letkf/Him8_ERR_CA_A_B${BB}_${atime}.dat"
+              echo "${OUTDIR}/${path}|${path}" >> $STAGING_DIR/${stgoutstep}.1
+              path="${atime}/log/letkf/Him8_ERR_CA_B_B${BB}_${atime}.dat"
+              echo "${OUTDIR}/${path}|${path}" >> $STAGING_DIR/${stgoutstep}.1
+              path="${atime}/log/letkf/Him8_ERR_CA_B${BB}.txt"
+              echo "${OUTDIR}/${path}|${path}" >> $STAGING_DIR/${stgoutstep}.1
+            done
+          fi
+
         else
           path="${atime}/log/obsope"
           echo "${OUTDIR}/${path}|${path}|d" >> $STAGING_DIR/${stgoutstep}
