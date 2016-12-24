@@ -1000,15 +1000,6 @@ subroutine write_Him8_CA(sHim8_OAB_CA,nHim8_CA,Him8_bias_CA,Him8_OB2_CA,Him8_BSP
 
       close(8889)
 
-      !write(6,'(A,1x,A)') ' Him8 bias information ',B3
-      !do i = 1, H08_CLD_OBSERR_NBIN
-      !  write(6,'(A,f6.1,i8,3f6.1)') ' bias,num,CA ',&
-      !                               Him8_bias_CA(ch,i),&
-      !                               nHim8_CA(ch,i),&
-      !                               real(real(i-1)*H08_CLD_OBSERR_WTH+H08_CLD_OBSERR_WTH*0.5,kind=r_size),&
-      !                               Him8_OB2_CA(ch,i),&
-      !                               sqrt(Him8_BSPRD2_CA(ch,i)/max(real(nHim8_CA(ch,i),kind=r_size),1.0d0))
-      !enddo
     endif ! H08_CH_USE
   enddo
 

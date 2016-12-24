@@ -271,6 +271,7 @@ EOF
       else
         echo "[!Caution!] No Him8 input file!!"
         echo $pathin1
+        echo $pathin2
       fi
     done
   fi
