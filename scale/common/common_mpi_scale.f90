@@ -1325,8 +1325,10 @@ SUBROUTINE write_ensmspr_mpi(file_mean,file_sprd,v3d,v2d,obs,obsda2)
             !! if((abs(tmp_OB) <= H08_CLD_OBSERR_GROSS_ERR) .and. & ! gross-error check ! tentative !!
             !!    (tmp_OB**2 >= 0.5d0))then ! Rejecting too small O-B SD. See section 3.2 in Okamoto et al. (2014QJRMS)
             if((abs(tmp_OB) <= H08_CLD_OBSERR_GROSS_ERR))then ! gross-error check 
-
               Him8_bias_CA_l(i,idx_CA) = Him8_bias_CA_l(i,idx_CA) + Him8_OAB_l((k-1)*nch+i)
+              if(H08_DEBIAS_CA_CLR)then
+                Him8_bias_CA_l(i,idx_CA) = Him8_bias_CA_l(i,idx_CA) + Him8_bias_CA_in(i,1)
+              endif
               Him8_OB2_CA_l(i,idx_CA) = Him8_OB2_CA_l(i,idx_CA) + Him8_OAB_l((k-1)*nch+i)**2
               nHim8_CA_l(i,idx_CA) = nHim8_CA_l(i,idx_CA) + 1
             endif
@@ -1355,7 +1357,6 @@ SUBROUTINE write_ensmspr_mpi(file_mean,file_sprd,v3d,v2d,obs,obsda2)
    
             Him8_BSPRD2_CA_l(i,idx_CA) = Him8_BSPRD2_CA_l(i,idx_CA) + tmp_sprd2
           enddo ![n = 1, obsda2(PRC_myrank)%nobs]
-          !WRITE(6,'(a)')"HIM8 DEBUG: 01 "
         endif ! [ ANAL_HIM8 ]
        
         call MPI_ALLREDUCE(nHim8_CA_l, nHim8_CA_g, nch*H08_CLD_OBSERR_NBIN, MPI_INTEGER, MPI_SUM, MPI_COMM_d, ierr)

@@ -262,16 +262,12 @@ EOF
     BB_LIST="07 08 09 10 11 12 13 14 15 16"
     for BB in ${BB_LIST} ; do
       pathin1="${OUTDIR}/${STIME}/log/letkf/Him8_ERR_CA_A_B${BB}_${STIME}.dat" # update in 9/11
-      pathin2="${OUTDIR}/${STIME}/log/letkf/Him8_ERR_CA_B_B${BB}_${STIME}.dat" # update in 9/11
       path1="Him8/Him8_ERR_CA_A_B${BB}_${STIME}.dat"
-      path2="Him8/Him8_ERR_CA_B_B${BB}_${STIME}.dat"
       if [ -e ${pathin1} ] && [ -e ${pathin2} ]  ; then
         echo "${pathin1}|${path1}" >> $STAGING_DIR/stagein.dat
-        echo "${pathin2}|${path2}" >> $STAGING_DIR/stagein.dat
       else
         echo "[!Caution!] No Him8 input file!!"
         echo $pathin1
-        echo $pathin2
       fi
     done
   fi
@@ -763,8 +759,6 @@ else
             BB_LIST="07 08 09 10 11 12 13 14 15 16"
             for BB in ${BB_LIST} ; do
               path="${atime}/log/letkf/Him8_ERR_CA_A_B${BB}_${atime}.dat"
-              echo "${OUTDIR}/${path}|${path}" >> $STAGING_DIR/${stgoutstep}.1
-              path="${atime}/log/letkf/Him8_ERR_CA_B_B${BB}_${atime}.dat"
               echo "${OUTDIR}/${path}|${path}" >> $STAGING_DIR/${stgoutstep}.1
               path="${atime}/log/letkf/Him8_ERR_CA_B${BB}.txt"
               echo "${OUTDIR}/${path}|${path}" >> $STAGING_DIR/${stgoutstep}.1

@@ -60,8 +60,8 @@ MODULE common_nml
   real(r_size) :: SIGMA_OBSV = 0.4d0
   real(r_size) :: SIGMA_OBSV_RAIN = -1.0d0 ! < 0: same as SIGMA_OBSV
   real(r_size) :: SIGMA_OBSZ_RADAR = 1000.0d0
-  real(r_size) :: SIGMA_OBSV_H08 = -1.0d0 ! < 0: same as SIGMA_OBSV ! H08
-  real(r_size) :: SIGMA_OBSV_TC = -1.0d0 ! < 0: same as SIGMA_OBSV 
+  real(r_size) :: SIGMA_OBSV_H08 = 0.5d0 ! < 0: TURN OFF ! H08
+  real(r_size) :: SIGMA_OBSV_TC = -1.0d0 ! < 0: TURN OFF  
   real(r_size) :: SIGMA_OBST = 3.0d0
   real(r_size) :: BASE_OBSV_RAIN = 85000.0d0
 
@@ -198,17 +198,17 @@ MODULE common_nml
   real(r_size) :: H08_RTTOV_MINQ = 0.10d0 ! Threshold of water/ice contents for diagnosing cloud fraction (g m-3)
   real(r_size) :: H08_LIMIT_LEV = 20000.0d0 ! (Pa) Upper limit level of the sensitive height for Himawari-8 IR
   real(r_size) :: H08_RTTOV_CFRAC_CNST = 0.10d0 ! Denominator constant for diagnosing SEQUENTIAL(0-1) cloud fraction (g m-3)
-                                                ! Negative values indicate DISCRETE (0/1) cloud fraction 
+                                                ! Negative values indicate DISCRETE (0/1) cloud fraction  
   real(r_size) :: H08_BT_MIN = 0.0d0 ! Lower limit of the BT for Himawari-8 IR
   logical :: H08_OB_OBSERR = .false. ! Obs err for Him8 is assigned by using abs(O-B).
   logical :: H08_CLD_OBSERR = .false. ! Cloud dependent obs error for Him8. If this is true, obs error depending on CA is assigned in letkf
   real(r_size) :: H08_CLD_OBSERR_WTH = 1.0d0 ! Bin width of CA for cloud dependent obs error.
-  integer :: H08_CLD_OBSERR_NBIN = 51 ! Number of bins for CA.
+  integer :: H08_CLD_OBSERR_NBIN = 41 ! Number of bins for CA.
   integer :: H08_CLD_OBSERR_MTIME = 18 ! Max number of analysis time that is used to diagnose cloud dependent obserr  
 
   real(r_size) :: H08_CLD_OBSERR_GROSS_ERR = 20.0d0
-  integer :: H08_CLD_OBSERR_MIN_SAMPLE = 500
-  integer :: H08_DEBIAS_CA_MIN_SAMPLE = 500
+  integer :: H08_CLD_OBSERR_MIN_SAMPLE = 200
+  integer :: H08_DEBIAS_CA_MIN_SAMPLE = 200
   logical :: H08_DEBIAS_CA_CLR = .false.
   logical :: H08_CLD_OBSERR_OB2 = .false. ! Maximum threshold for Him8 obs err using sqrt([O-B]**2)
   logical :: H08_CLD_OBSERR_BSPRD2 = .false. ! Output background spread**2 in obs space as a function of CA ! ?? not used
@@ -402,15 +402,15 @@ subroutine read_nml_letkf
   if (SIGMA_OBS_H08 < 0.0d0) then ! H08
     SIGMA_OBS_H08 = SIGMA_OBS
   end if
-  if (SIGMA_OBSV_H08 < 0.0d0) then ! H08
-    SIGMA_OBSV_H08 = SIGMA_OBSV
-  end if
+  !if (SIGMA_OBSV_H08 < 0.0d0) then ! H08
+  !  SIGMA_OBSV_H08 = SIGMA_OBSV
+  !end if
   if (SIGMA_OBS_TC < 0.0d0) then 
     SIGMA_OBS_TC = SIGMA_OBS
   end if
-  if (SIGMA_OBSV_TC < 0.0d0) then 
-    SIGMA_OBSV_TC = SIGMA_OBSV
-  end if
+  !if (SIGMA_OBSV_TC < 0.0d0) then 
+  !  SIGMA_OBSV_TC = SIGMA_OBSV
+  !end if
 
   if (trim(INFL_MUL_OUT_BASENAME) == '') then
     INFL_MUL_ADAPTIVE = .false.
