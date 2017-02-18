@@ -196,6 +196,7 @@ MODULE common_nml
   logical :: H08_REJECT_LAND = .false. ! true: reject Himawari-8 radiance over the land
   logical :: H08_RTTOV_CLD = .true. ! true: all-sky, false: CSR in RTTOV fwd model
   real(r_size) :: H08_RTTOV_MINQ = 0.10d0 ! Threshold of water/ice contents for diagnosing cloud fraction (g m-3)
+  real(r_size) :: H08_RTTOV_MINQ_CTOP = 0.10d0 ! Threshold of water/ice contents for diagnosing the cloud top (g m-3)
   real(r_size) :: H08_LIMIT_LEV = 20000.0d0 ! (Pa) Upper limit level of the sensitive height for Himawari-8 IR
   real(r_size) :: H08_RTTOV_CFRAC_CNST = 0.10d0 ! Denominator constant for diagnosing SEQUENTIAL(0-1) cloud fraction (g m-3)
                                                 ! Negative values indicate DISCRETE (0/1) cloud fraction  
@@ -213,6 +214,7 @@ MODULE common_nml
   logical :: H08_CLD_OBSERR_OB2 = .false. ! Maximum threshold for Him8 obs err using sqrt([O-B]**2)
   logical :: H08_CLD_OBSERR_BSPRD2 = .false. ! Output background spread**2 in obs space as a function of CA ! ?? not used
   logical :: H08_RTTOV_EXTRA_US76 = .false.
+  logical :: H08_VLOCAL_CTOP = .false.
 
   integer :: H08_CH_USE(nch) = (/0,0,0,0,0,0,0,0,0,0/)
                         !! ch = (1,2,3,4,5,6,7,8,9,10)
@@ -633,6 +635,7 @@ subroutine read_nml_letkf_h08
     H08_REJECT_LAND,           &
     H08_RTTOV_CLD,             &
     H08_RTTOV_MINQ,            &
+    H08_RTTOV_MINQ_CTOP,       &
     H08_RTTOV_CFRAC_CNST,      &
     H08_LIMIT_LEV,             &
     H08_BT_MIN,                &
@@ -648,6 +651,7 @@ subroutine read_nml_letkf_h08
     H08_DEBIAS_CA_MIN_SAMPLE,  &
     H08_CLD_OBSERR_OB2,        &
     H08_CLD_OBSERR_BSPRD2,     &
+    H08_VLOCAL_CTOP,           &
     H08_CH_USE
 
   rewind(IO_FID_CONF)

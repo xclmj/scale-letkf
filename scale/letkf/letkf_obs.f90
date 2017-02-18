@@ -610,8 +610,9 @@ SUBROUTINE set_letkf_obs
       endif
 
       ! Get clear-sky bias correction coefficient
+      ! Assume that the smallest CA bin can be regarded as clear sky (Harnisch et al. 2016QJRMS).
       if(H08_DEBIAS_CA_CLR .and. H08_CLD_OBSERR)then
-        Him8_bias(ch_num) = Him8_bias_CA(ch_num,idx_CA)
+        Him8_bias(ch_num) = Him8_bias_CA(ch_num,1)
       else
         Him8_bias(ch_num) = 0.0d0
       endif

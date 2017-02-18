@@ -24,7 +24,8 @@ SUBROUTINE SCALE_RTTOV_fwd(nchannels,&
                            tmp_ztop,&
                            btall_out,& 
                            btclr_out,& 
-                           trans_out)
+                           trans_out,&
+                           ctop_out)
   !
   ! Copyright:
   !    This software was developed within the context of
@@ -115,13 +116,15 @@ SUBROUTINE SCALE_RTTOV_fwd(nchannels,&
   USE common_nml, ONLY: &
         H08_RTTOV_MINQ, &
         H08_RTTOV_CFRAC_CNST, &
-        H08_RTTOV_EXTRA_US76 
+        H08_RTTOV_EXTRA_US76, &
+        H08_RTTOV_MINQ_CTOP
 ! for Obs sim.
 !  use mod_net2g_vars, ONLY: & !
 !        H08_RTTOV_MINQ, &
 !        H08_RTTOV_CFRAC_CNST, &
 !        H08_RTTOV_CFRAC_CNST_TC99, &
-!        H08_RTTOV_EXTRA_US76 
+!        H08_RTTOV_EXTRA_US76, &
+!        H08_RTTOV_MINQ_CTOP
   IMPLICIT NONE
 
 #include "rttov_parallel_direct.interface"
@@ -252,6 +255,8 @@ SUBROUTINE SCALE_RTTOV_fwd(nchannels,&
   REAL(Kind=r_size),INTENT(OUT) :: btall_out(nchannels,nprof)
   REAL(Kind=r_size),INTENT(OUT) :: btclr_out(nchannels,nprof)
   REAL(Kind=r_size),INTENT(OUT) :: trans_out(nlevs,nchannels,nprof)
+  REAL(Kind=r_size),INTENT(OUT) :: ctop_out(nprof)
+  REAL(Kind=r_size) :: ptmp
 
   logical :: debug = .false.
 !  logical :: debug = .true.
@@ -636,6 +641,9 @@ SUBROUTINE SCALE_RTTOV_fwd(nchannels,&
 !  --- 6.1 microphysical clouds 
 !    if(icldprf==1) then
     ! --convert kg/kg into g/m3, make liq.cloud and ice.cloud amount, and upside-down
+ 
+      ctop_out(iprof) = -1.0d0 
+
       do ilev=1,nlevs
         tv = real(tmp_t(ilev,iprof),kind=jprb) * (1.0_jprb+real(tmp_qv(ilev,iprof),kind=jprb) * repsb) &
            / (1.0_jprb + real(tmp_qv(ilev,iprof),kind=jprb))
@@ -651,16 +659,28 @@ SUBROUTINE SCALE_RTTOV_fwd(nchannels,&
                    (icec(ilev+1) + icec(ilev)) * 0.5_jprb
 !
 ! cloud fraction diagnosis
+        ptmp = (tmp_p(ilev+1,iprof) + tmp_p(ilev,iprof))*0.5_jprb
+
         if(jcfrac_cnst <= 0.0_jprb)then
           if(((profiles(iprof) % cloud(2,ilev+nlevs_add) + &
                profiles(iprof) % cloud(6,ilev+nlevs_add)) > minQcfrac)) then
             profiles(iprof) % cfrac(ilev+nlevs_add) = 1.0_jprb  !cloud fraction 
+           
+            if(ctop_out(iprof) < 0.0d0)then
+              ctop_out(iprof) = ptmp
+            endif
           else
             profiles(iprof) % cfrac(ilev+nlevs_add) = 0.0_jprb  !cloud fraction 
           endif
         else ! default!!
           profiles(iprof) % cfrac(ilev+nlevs_add) = min((profiles(iprof) % cloud(2,ilev+nlevs_add) + &
                                                profiles(iprof) % cloud(6,ilev+nlevs_add)) / jcfrac_cnst, 1.0_jprb)
+          if(profiles(iprof) % cloud(2,ilev+nlevs_add) + &
+             profiles(iprof) % cloud(6,ilev+nlevs_add) >= H08_RTTOV_MINQ_CTOP)then
+            if(ctop_out(iprof) < 0.0d0)then
+              ctop_out(iprof) = ptmp
+            endif
+          endif
         endif
       end do ! ilev
     endif ! addclouds

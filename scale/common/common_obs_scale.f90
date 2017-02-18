@@ -2777,6 +2777,8 @@ SUBROUTINE Trans_XtoY_H08(nprof,ri,rj,lon,lat,v3d,v2d,yobs,plev_obs,qc,stggrd,yo
   REAL(r_size) :: btclr_out(nch,nprof) ! NOTE: RTTOV always calculates all (10) channels!!
 ! -- transmittance from RTTOV
   REAL(r_size) :: trans_out(nlev,nch,nprof)
+! -- cloud top height
+  REAL(r_size) :: ctop_out(nprof)
  
   REAL(r_size) :: max_weight(nch,nprof)
   REAL(r_size) :: tmp_weight
@@ -2868,7 +2870,8 @@ SUBROUTINE Trans_XtoY_H08(nprof,ri,rj,lon,lat,v3d,v2d,yobs,plev_obs,qc,stggrd,yo
                        ztop1d(1:nprof), & ! (m)
                        btall_out(1:nch,1:nprof),& ! (K)
                        btclr_out(1:nch,1:nprof),& ! (K)
-                       trans_out(nlev:1:-1,1:nch,1:nprof))
+                       trans_out(nlev:1:-1,1:nch,1:nprof),&
+                       ctop_out(1:nprof))
 
 !
 ! -- Compute max weight level using trans_out 
@@ -2893,10 +2896,19 @@ SUBROUTINE Trans_XtoY_H08(nprof,ri,rj,lon,lat,v3d,v2d,yobs,plev_obs,qc,stggrd,yo
         max_weight(ch,np) = tmp_weight
         plev_obs(n) = (prs2d(slev+k,np) + prs2d(slev+k-1,np)) * 0.5d0 ! (Pa)
       endif
+
     ENDDO
+
 
     if(H08_RTTOV_CLD)then
       yobs(n) = btall_out(ch,np)
+!      write(6,'(a,2f8.1,i7)')'CTOP0',ctop_out(n)/100.0d0,plev_obs(n)/100.0d0,n
+      if(H08_VLOCAL_CTOP)then
+        if((ctop_out(n) > 0.0d0) .and. (ctop_out(n) < plev_obs(n)) .and. (plev_obs(n)>H08_LIMIT_LEV))then
+          plev_obs(n) = (ctop_out(n)+plev_obs(n))*0.5d0
+        endif
+      endif
+!      write(6,'(a,2f8.1,i7)')'CTOP1',ctop_out(n)/100.0d0,plev_obs(n)/100.0d0,n
     else
       yobs(n) = btclr_out(ch,np)
     endif
