@@ -175,7 +175,7 @@ while ((time <= ETIME)); do
 
   # bdy (prepared)
   #-------------------
-  if ((BDY_FORMAT == 0)); then
+  if ((BDY_FORMAT == 0 && (DACYCLE != 1 || loop == 1))); then
     if ((BDY_ENS == 0)); then
       if ((DISK_MODE == 3)); then
         for m in $(seq $((repeat_mems <= mtot ? repeat_mems : mtot))); do

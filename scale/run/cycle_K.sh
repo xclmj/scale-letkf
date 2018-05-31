@@ -118,9 +118,9 @@ ${SCRP_DIR}/src/|src/
 ${NODEFILE_DIR}/|node/
 EOF
 
-if [ ! -e  ${SCRP_DIR}/dtf.ini ] ; then
-  echo "dtf.ini is not specified!"
-  exit
+if [ ! -e ${SCRP_DIR}/dtf.ini ] || [ ! -e ${LIBDTF_PATH}/libdtf.so ]; then
+  echo "[Error] $0: dtf.ini and/or libdtf are missing." >&2
+  exit 1
 fi
 
 if [ "$CONF_MODE" != 'static' ]; then
