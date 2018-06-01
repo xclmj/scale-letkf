@@ -19,7 +19,7 @@ USERNAME=gylien
 
 ### -- Honda setting
 PRESET='K_micro'
-#PRESET='K'
+PRESET='K'
 #EXP="testcase_PAWR_1km_4p_pnetcdf_ioarb"
 DDIR="/volume63/data/hp150019/gylien/scale-letkf-test-suite-pnetcdf"
 INDIR="/volume63/data/hp150019/honda/SCALE-LETKF/scale-productrun-CREST0222/OUTPUT/testcase_PAWR_1km_4p_pnetcdf_ioarb"

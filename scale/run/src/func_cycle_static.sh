@@ -296,50 +296,50 @@ while ((time <= ETIME)); do
     done
   done
 
-  # gues
-  #-------------------
-  if ((OUT_OPT <= 3)); then
-    mlist=$(seq $mtot)
-  elif ((OUT_OPT <= 6)); then
-    mlist="$mmean"
-    if ((DET_RUN == 1)); then
-      mlist="$mlist $mmdet"
-    fi
-  fi
-  for m in $mlist; do
-    for q in $(seq $mem_np_); do
-      path="${name_m[$m]}/gues.d01_$(datetime_scale $atime)$(scale_filename_sfx $((q-1)))"
-      pathout="${OUTDIR}/${atime}/gues/${name_m[$m]}${CONNECTOR}init$(scale_filename_sfx $((q-1)))"
-#      echo "${pathout}|${path}|${loop}" >> ${STAGING_DIR}/${STGOUTLIST}.${mem2node[$(((m-1)*mem_np+q))]}
-      echo "${pathout}|${path}|${loop}" >> ${STAGING_DIR}/${STGOUTLIST_NOLINK}.${mem2node[$(((m-1)*mem_np+q))]}
-      if ((m == mmean && SPRD_OUT == 1)); then
-        path="sprd/gues.d01_$(datetime_scale $atime)$(scale_filename_sfx $((q-1)))"
-        pathout="${OUTDIR}/${atime}/gues/sprd${CONNECTOR}init$(scale_filename_sfx $((q-1)))"
-#        echo "${pathout}|${path}|${loop}" >> ${STAGING_DIR}/${STGOUTLIST}.${mem2node[$(((m-1)*mem_np+q))]}
-        echo "${pathout}|${path}|${loop}" >> ${STAGING_DIR}/${STGOUTLIST_NOLINK}.${mem2node[$(((m-1)*mem_np+q))]}
-      fi
-    done
-  done
+#  # gues
+#  #-------------------
+#  if ((OUT_OPT <= 3)); then
+#    mlist=$(seq $mtot)
+#  elif ((OUT_OPT <= 6)); then
+#    mlist="$mmean"
+#    if ((DET_RUN == 1)); then
+#      mlist="$mlist $mmdet"
+#    fi
+#  fi
+#  for m in $mlist; do
+#    for q in $(seq $mem_np_); do
+#      path="${name_m[$m]}/gues.d01_$(datetime_scale $atime)$(scale_filename_sfx $((q-1)))"
+#      pathout="${OUTDIR}/${atime}/gues/${name_m[$m]}${CONNECTOR}init$(scale_filename_sfx $((q-1)))"
+##      echo "${pathout}|${path}|${loop}" >> ${STAGING_DIR}/${STGOUTLIST}.${mem2node[$(((m-1)*mem_np+q))]}
+#      echo "${pathout}|${path}|${loop}" >> ${STAGING_DIR}/${STGOUTLIST_NOLINK}.${mem2node[$(((m-1)*mem_np+q))]}
+#      if ((m == mmean && SPRD_OUT == 1)); then
+#        path="sprd/gues.d01_$(datetime_scale $atime)$(scale_filename_sfx $((q-1)))"
+#        pathout="${OUTDIR}/${atime}/gues/sprd${CONNECTOR}init$(scale_filename_sfx $((q-1)))"
+##        echo "${pathout}|${path}|${loop}" >> ${STAGING_DIR}/${STGOUTLIST}.${mem2node[$(((m-1)*mem_np+q))]}
+#        echo "${pathout}|${path}|${loop}" >> ${STAGING_DIR}/${STGOUTLIST_NOLINK}.${mem2node[$(((m-1)*mem_np+q))]}
+#      fi
+#    done
+#  done
 
   # hist
   #-------------------
-  if ((OUT_OPT <= 1)); then
-    mlist=$(seq $mtot)
-  elif ((OUT_OPT <= 2)); then
-    mlist="$mmean"
-    if ((DET_RUN == 1)); then
-      mlist="$mlist $mmdet"
-    fi
-  fi
-  for m in $mlist; do
-    for q in $(seq $mem_np_); do
-      #path="${name_m[$m]}/hist.d01_$(datetime_scale $time)$(scale_filename_sfx $((q-1)))"
-      path="${name_m[$m]}/hist.d01_$(datetime_scale $atime)$(scale_filename_sfx $((q-1)))"
-      pathout="${OUTDIR}/${time}/hist/${name_m[$m]}${CONNECTOR}history$(scale_filename_sfx $((q-1)))"
-#      echo "${pathout}|${path}|${loop}" >> ${STAGING_DIR}/${STGOUTLIST}.${mem2node[$(((m-1)*mem_np+q))]}
-      echo "${pathout}|${path}|${loop}" >> ${STAGING_DIR}/${STGOUTLIST_NOLINK}.${mem2node[$(((m-1)*mem_np+q))]}
-    done
-  done
+#  if ((OUT_OPT <= 1)); then
+#    mlist=$(seq $mtot)
+#  elif ((OUT_OPT <= 2)); then
+#    mlist="$mmean"
+#    if ((DET_RUN == 1)); then
+#      mlist="$mlist $mmdet"
+#    fi
+#  fi
+#  for m in $mlist; do
+#    for q in $(seq $mem_np_); do
+#      #path="${name_m[$m]}/hist.d01_$(datetime_scale $time)$(scale_filename_sfx $((q-1)))"
+#      path="${name_m[$m]}/hist.d01_$(datetime_scale $atime)$(scale_filename_sfx $((q-1)))"
+#      pathout="${OUTDIR}/${time}/hist/${name_m[$m]}${CONNECTOR}history$(scale_filename_sfx $((q-1)))"
+##      echo "${pathout}|${path}|${loop}" >> ${STAGING_DIR}/${STGOUTLIST}.${mem2node[$(((m-1)*mem_np+q))]}
+#      echo "${pathout}|${path}|${loop}" >> ${STAGING_DIR}/${STGOUTLIST_NOLINK}.${mem2node[$(((m-1)*mem_np+q))]}
+#    done
+#  done
 
 #    # diag
 #    #-------------------
@@ -581,6 +581,19 @@ TOTAL_FCSTLEN=$((ESEC - SSEC))
       RESTART_OUT_ADDITIONAL_COPIES=0
       RESTART_OUT_ADDITIONAL_BASENAME=
     fi
+
+    FILE_HISTORY_DEFAULT_TINTERVAL=${CYCLEFOUT}
+    FILE_HISTORY_OUTPUT_SWITCH_TINTERVAL=${LCYCLE}
+    if [ "${name_m[$m]}" = 'mean' ] || [ "${name_m[$m]}" = 'mdet' ] ; then  # for product run
+      RESTART_OUT_ADDITIONAL_COPIES=0
+      RESTART_OUT_ADDITIONAL_BASENAME=
+    fi
+    if [ "${name_m[$m]}" = 'mean' ] ; then
+      # No history data from mean is required
+      FILE_HISTORY_DEFAULT_TINTERVAL=$((TOTAL_FCSTLEN * 2))
+      FILE_HISTORY_OUTPUT_SWITCH_TINTERVAL=$((TOTAL_FCSTLEN * 2))
+    fi
+
     if ((BDY_ENS == 1)); then
       mem_bdy=${name_m[$m]}
     else
@@ -614,7 +627,7 @@ TOTAL_FCSTLEN=$((ESEC - SSEC))
             -e "/!--ATMOS_BOUNDARY_START_DATE--/a ATMOS_BOUNDARY_START_DATE = ${STIME:0:4}, ${STIME:4:2}, ${STIME:6:2}, ${STIME:8:2}, ${STIME:10:2}, ${STIME:12:2}," \
             -e "/!--ATMOS_BOUNDARY_UPDATE_DT--/a ATMOS_BOUNDARY_UPDATE_DT = $BDYINT.D0," \
             -e "/!--FILE_HISTORY_DEFAULT_BASENAME--/a FILE_HISTORY_DEFAULT_BASENAME = \"${name_m[$m]}/hist.d01\"," \
-            -e "/!--FILE_HISTORY_DEFAULT_TINTERVAL--/a FILE_HISTORY_DEFAULT_TINTERVAL = ${CYCLEFOUT}.D0," \
+            -e "/!--FILE_HISTORY_DEFAULT_TINTERVAL--/a FILE_HISTORY_DEFAULT_TINTERVAL = ${FILE_HISTORY_DEFAULT_TINTERVAL}.D0," \
             -e "/!--MONITOR_OUT_BASENAME--/a MONITOR_OUT_BASENAME = \"log/scale.${name_m[$m]}.monitor_${STIME}\"," \
             -e "/!--LAND_PROPERTY_IN_FILENAME--/a LAND_PROPERTY_IN_FILENAME = \"${TMPROOT_CONSTDB}/dat/land/param.bucket.conf\"," \
             -e "/!--DOMAIN_CATALOGUE_FNAME--/a DOMAIN_CATALOGUE_FNAME = \"latlon_domain_catalogue.txt\"," \
@@ -627,7 +640,7 @@ TOTAL_FCSTLEN=$((ESEC - SSEC))
             -e "/!--TIME_END_RESTART_OUT--/a TIME_END_RESTART_OUT = .false.," \
             -e "/!--RESTART_OUT_ADDITIONAL_COPIES--/a RESTART_OUT_ADDITIONAL_COPIES = ${RESTART_OUT_ADDITIONAL_COPIES}," \
             -e "/!--RESTART_OUT_ADDITIONAL_BASENAME--/a RESTART_OUT_ADDITIONAL_BASENAME = ${RESTART_OUT_ADDITIONAL_BASENAME}" \
-            -e "/!--FILE_HISTORY_OUTPUT_SWITCH_TINTERVAL--/a FILE_HISTORY_OUTPUT_SWITCH_TINTERVAL = ${LCYCLE}.D0," \
+            -e "/!--FILE_HISTORY_OUTPUT_SWITCH_TINTERVAL--/a FILE_HISTORY_OUTPUT_SWITCH_TINTERVAL = ${FILE_HISTORY_OUTPUT_SWITCH_TINTERVAL}.D0," \
         > $CONFIG_DIR/${conf_file}
 #    cat $SCRP_DIR/config.nml.scale_user | \
 #        sed -e "/!--OCEAN_RESTART_IN_BASENAME--/a OCEAN_RESTART_IN_BASENAME = \"XXXXXX\"," \
@@ -730,6 +743,17 @@ TOTAL_FCSTLEN=$((ESEC - SSEC))
   if ((stage_config == 1)); then
     echo "$CONFIG_DIR/${conf_file}|${conf_file}" >> ${STAGING_DIR}/${STGINLIST}
   fi
+
+  # dtf.ini
+  conf_file="dtf.ini"
+  echo "  $conf_file"
+  cat $SCRP_DIR/config.nml.dtf | \
+      sed -e "/!--EXCLUDE_NAME--/a exclude_name=\"${etime:8:6}\"" \
+      > $CONFIG_DIR/${conf_file}
+  if ((stage_config == 1)); then
+    echo "$CONFIG_DIR/${conf_file}|${conf_file}" >> ${STAGING_DIR}/${STGINLIST}
+  fi
+
 
   #-------------------
 #  time=$(datetime $time $LCYCLE s)

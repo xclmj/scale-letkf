@@ -30,6 +30,7 @@ mode="transfer"
 [FILE]
 filename="mean/anal"
 exclude_name="060000"
+!--EXCLUDE_NAME--
 comp1="scale"
 comp2="letkf"
 mode="transfer"
@@ -38,6 +39,7 @@ num_sessions=2
 [FILE]
 filename="mdet/anal"
 exclude_name="060000"
+!--EXCLUDE_NAME--
 comp1="scale"
 comp2="letkf"
 mode="transfer"

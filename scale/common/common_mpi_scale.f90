@@ -1120,11 +1120,15 @@ subroutine read_ens_mpi(v3d, v2d)
 
     ! Note: read all members + mdetin
     ! 
+#ifdef PNETCDF
+    if ((im >= 1 .and. im <= MEMBER) .or. im == mmdetin .or. im == mmean) then
+#else
     if ((im >= 1 .and. im <= MEMBER) .or. im == mmdetin) then
+#endif
       if (im <= MEMBER) then
         call file_member_replace(im, trim(GUES_IN_BASENAME)//timelabel, filename)
       else if (im == mmean) then
-        filename = trim(GUES_MEAN_INOUT_BASENAME)//timelabel
+        filename = trim(ANAL_MEAN_OUT_BASENAME)//timelabel
       else if (im == mmdet) then
         filename = trim(GUES_MDET_IN_BASENAME)//timelabel
       end if
@@ -1697,7 +1701,9 @@ subroutine write_ensmean(filename, v3d, v2d, calced, monit_step)
 
 #ifdef PNETCDF
     if (FILE_AGGREGATE) then
-      call write_restart_par(filename, v3dg, v2dg, MPI_COMM_d)
+      if (monit_step == 2) then ! mean/gues is not created
+        call write_restart_par(filename, v3dg, v2dg, MPI_COMM_d)
+      endif
     else
 #endif
       call write_restart(filename, v3dg, v2dg)

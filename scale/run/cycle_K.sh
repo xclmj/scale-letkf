@@ -113,13 +113,14 @@ ${SCRP_DIR}/config.rc|config.rc
 ${SCRP_DIR}/config.${job}|config.${job}
 ${SCRP_DIR}/${job}.sh|${job}.sh
 ${LIBDTF_PATH}/libdtf.so|libdtf.so
-${SCRP_DIR}/dtf.ini|dtf.ini 
 ${SCRP_DIR}/src/|src/
 ${NODEFILE_DIR}/|node/
 EOF
+#${SCRP_DIR}/dtf.ini|dtf.ini 
 
-if [ ! -e ${SCRP_DIR}/dtf.ini ] || [ ! -e ${LIBDTF_PATH}/libdtf.so ]; then
-  echo "[Error] $0: dtf.ini and/or libdtf are missing." >&2
+#if [ ! -e ${SCRP_DIR}/dtf.ini ] || [ ! -e ${LIBDTF_PATH}/libdtf.so ]; then
+if [ ! -e ${LIBDTF_PATH}/libdtf.so ]; then
+  echo "[Error] $0: libdtf is missing." >&2
   exit 1
 fi
 

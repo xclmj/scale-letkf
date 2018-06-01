@@ -90,10 +90,11 @@ cat $SCRP_DIR/config.main | \
     > $TMP/config.main
 
 cp -L $LIBDTF_PATH/libdtf.so $TMP/libdtf.so
-cp -L $SCRP_DIR/dtf.ini $TMP/dtf.ini
+#cp -L $SCRP_DIR/dtf.ini $TMP/dtf.ini
 
-if [ ! -e ${SCRP_DIR}/dtf.ini ] || [ ! -e ${LIBDTF_PATH}/libdtf.so ]; then
-  echo "[Error] $0: dtf.ini and/or libdtf are missing." >&2
+#if [ ! -e ${SCRP_DIR}/dtf.ini ] || [ ! -e ${LIBDTF_PATH}/libdtf.so ]; then
+if [ ! -e ${LIBDTF_PATH}/libdtf.so ]; then
+  echo "[Error] $0: libdtf is missing." >&2
   exit 1
 fi
 
