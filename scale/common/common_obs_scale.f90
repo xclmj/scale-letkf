@@ -123,6 +123,10 @@ MODULE common_obs_scale
 #ifdef H08
     REAL(r_size),ALLOCATABLE :: lev(:) ! Him8
     REAL(r_size),ALLOCATABLE :: val2(:) ! Him8 sigma_o for AOEI (not CA)
+    REAL(r_size),ALLOCATABLE :: val_CM(:) ! Him8 Cm
+    REAL(r_size),ALLOCATABLE :: val_RH(:) ! Him8 Relative humidity
+    REAL(r_size),ALLOCATABLE :: ensval_CM(:,:) ! Him8 Cm
+    REAL(r_size),ALLOCATABLE :: ensval_RH(:,:) ! Him8 RH
 !    REAL(r_size),ALLOCATABLE :: pred1(:) ! Him8 bias correction predictor 1 (nobs)
 !    REAL(r_size),ALLOCATABLE :: pred2(:) ! Him8 bias correction predictor 1 (nobs)
 #endif
@@ -265,6 +269,12 @@ end subroutine set_common_obs_scale
 SUBROUTINE Trans_XtoY(elm,ri,rj,rk,lon,lat,v3d,v2d,yobs,qc,stggrd)
   use scale_mapproj, only: &
       MPRJ_rotcoef
+#ifdef H08
+  use scale_const, only: &
+     Rdry   => CONST_Rdry, &
+     Rvap   => CONST_Rvap, &
+     CVdry  => CONST_CVdry
+#endif
   IMPLICIT NONE
   INTEGER,INTENT(IN) :: elm
   REAL(r_size),INTENT(IN) :: ri,rj,rk
@@ -276,6 +286,11 @@ SUBROUTINE Trans_XtoY(elm,ri,rj,rk,lon,lat,v3d,v2d,yobs,qc,stggrd)
   INTEGER,INTENT(IN),OPTIONAL :: stggrd
   REAL(r_size) :: u,v,t,q,topo
   REAL(RP) :: rotc(2)
+
+#ifdef H08
+  real(r_size) :: p_tmp, q_tmp, tk_tmp
+  real(r_size) :: es_tmp, e_tmp, eps_tmp
+#endif H08
 
   INTEGER :: stggrd_ = 0
   if (present(stggrd)) stggrd_ = stggrd
@@ -321,7 +336,20 @@ SUBROUTINE Trans_XtoY(elm,ri,rj,rk,lon,lat,v3d,v2d,yobs,qc,stggrd)
 !  CASE(id_rain_obs) ! RAIN                        ############# (not finished)
 !    CALL itpl_2d(v2d(:,:,iv2dd_rain),ri,rj,yobs) !#############
   CASE(id_rh_obs) ! RH
-    CALL itpl_3d(v3d(:,:,:,iv3dd_rh),rk,ri,rj,yobs)
+#ifdef H08
+     CALL itpl_3d(v3d(:,:,:,iv3dd_q),rk,ri,rj,q_tmp)
+     CALL itpl_3d(v3d(:,:,:,iv3dd_p),rk,ri,rj,p_tmp)
+     CALL itpl_3d(v3d(:,:,:,iv3dd_t),rk,ri,rj,tk_tmp)
+
+     es_tmp = 6.112 * exp(17.67 * (tk_tmp - 273.15d0) / ((tk_tmp - 273.15d0) + 243.5))
+
+     eps_tmp = Rdry / Rvap
+
+     e_tmp = q_tmp * p_tmp / (eps_tmp + q_tmp) * 0.01d0
+     yobs = e_tmp / es_tmp * 100.d0 ! [%]
+
+#endif
+!    CALL itpl_3d(v3d(:,:,:,iv3dd_rh),rk,ri,rj,yobs)
 !  CASE(id_tclon_obs)
 !    CALL tctrk(v2d(:,:,iv2d_ps),v2d(:,:,iv2d_t2),ri,rj,dummy)
 !    yobs = dummy(1)
@@ -2080,6 +2108,8 @@ SUBROUTINE obs_da_value_allocate(obsda,member)
 #ifdef H08
   ALLOCATE( obsda%lev (obsda%nobs) ) ! Him8
   ALLOCATE( obsda%val2 (obsda%nobs) ) ! Him8
+  ALLOCATE( obsda%val_CM (obsda%nobs) ) ! Him8
+  ALLOCATE( obsda%val_RH (obsda%nobs) ) ! Him8
 !  ALLOCATE( obsda%pred1 (obsda%nobs) ) ! Him8
 !  ALLOCATE( obsda%pred2 (obsda%nobs) ) ! Him8
 #endif
@@ -2092,6 +2122,8 @@ SUBROUTINE obs_da_value_allocate(obsda,member)
 #ifdef H08
   obsda%lev = 0.0d0 ! Him8
   obsda%val2 = 0.0d0 ! Him8
+  obsda%val_CM = 0.0d0 ! Him8
+  obsda%val_RH = 0.0d0 ! Him8
 !  obsda%pred1 = 0.0d0 ! Him8
 !  obsda%pred2 = 0.0d0 ! Him8
 #endif
@@ -2100,6 +2132,12 @@ SUBROUTINE obs_da_value_allocate(obsda,member)
   if (member >= 0) then
     ALLOCATE( obsda%ensval (member,obsda%nobs) )
     obsda%ensval = 0.0d0
+#ifdef H08
+    ALLOCATE( obsda%ensval_CM (member,obsda%nobs) )
+    obsda%ensval_CM = 0.0d0
+    ALLOCATE( obsda%ensval_RH (member,obsda%nobs) )
+    obsda%ensval_RH = 0.0d0
+#endif
   end if
 
   RETURN
@@ -2120,6 +2158,10 @@ SUBROUTINE obs_da_value_deallocate(obsda)
 #ifdef H08
   IF(ALLOCATED(obsda%lev   )) DEALLOCATE(obsda%lev   ) ! Him8
   IF(ALLOCATED(obsda%val2   )) DEALLOCATE(obsda%val2   ) ! Him8
+  IF(ALLOCATED(obsda%val_CM   )) DEALLOCATE(obsda%val_CM   ) ! Him8
+  IF(ALLOCATED(obsda%val_RH   )) DEALLOCATE(obsda%val_RH   ) ! Him8
+  IF(ALLOCATED(obsda%ensval_CM)) DEALLOCATE(obsda%ensval_CM) ! Him8
+  IF(ALLOCATED(obsda%ensval_RH)) DEALLOCATE(obsda%ensval_RH) ! Him8
 !  IF(ALLOCATED(obsda%pred1   )) DEALLOCATE(obsda%pred1   ) ! Him8
 !  IF(ALLOCATED(obsda%pred2   )) DEALLOCATE(obsda%pred2   ) ! Him8
 #endif
@@ -2341,7 +2383,7 @@ SUBROUTINE read_obs_da(cfile,obsda,im)
   TYPE(obs_da_value),INTENT(INOUT) :: obsda
   INTEGER,INTENT(IN) :: im
 #ifdef H08
-  REAL(r_sngl) :: wk(8) ! H08
+  REAL(r_sngl) :: wk(9) ! H08
 #else
   REAL(r_sngl) :: wk(4) ! H08
 #endif
@@ -2359,11 +2401,15 @@ SUBROUTINE read_obs_da(cfile,obsda,im)
       obsda%val(n) = REAL(wk(3),r_size)
     else
       obsda%ensval(im,n) = REAL(wk(3),r_size)
+#ifdef H08
+      obsda%ensval_CM(im,n) = REAL(wk(9),r_size)
+#endif
     end if
     obsda%qc(n) = NINT(wk(4))
 #ifdef H08
     obsda%lev(n) = REAL(wk(5),r_size) ! Him8
     obsda%val2(n) = REAL(wk(6),r_size) ! Him8
+    obsda%val_CM(n) = REAL(wk(9),r_size) ! Him8
 !    obsda%pred1(n) = REAL(wk(7),r_size) ! Him8
 !    obsda%pred2(n) = REAL(wk(8),r_size) ! Him8
 #endif
@@ -2382,7 +2428,7 @@ SUBROUTINE write_obs_da(cfile,obsda,im,append)
   LOGICAL :: append_
 #ifdef H08
 !  REAL(r_sngl) :: wk(8) ! H08
-  REAL(r_sngl) :: wk(6) ! H08
+  REAL(r_sngl) :: wk(7) ! H08
 #else
   REAL(r_sngl) :: wk(4) 
 #endif
@@ -2404,6 +2450,9 @@ SUBROUTINE write_obs_da(cfile,obsda,im,append)
       wk(3) = REAL(obsda%val(n),r_sngl)
     else
       wk(3) = REAL(obsda%ensval(im,n),r_sngl)
+#ifdef H08
+      wk(7) = REAL(obsda%ensval_CM(im,n),r_sngl)
+#endif
     end if
     wk(4) = REAL(obsda%qc(n),r_sngl)
 #ifdef H08

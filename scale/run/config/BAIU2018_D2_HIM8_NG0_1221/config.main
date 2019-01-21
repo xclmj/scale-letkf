@@ -8,7 +8,7 @@
 PRESET='K_rankdir'                           # 'K' or 'K_rankdir' or 'K_micro'
 #PRESET='K_micro'
 
-EXP=BAIU2018_D2_HIM8_NG0_1221
+EXP=BAIU2018_D2_HIM8_NG0_1227_TEST
 #PEXP="/volume64/data/ra001011/honda/realtime/r0050/exp_d1_5.2.6"
 PEXP="/data/share025/honda/scale-5.2.6/OUTPUT/exp_d1_5.2.6"
 
@@ -126,7 +126,8 @@ LTIMESLOT=600     # Timeslot interval for 4D-LETKF (second)
 MEMBER=50         # Ensemble size
 NNODES=1716    # Number of nodes
 
-#NNODES=240    # Number of nodes
+#MEMBER=8         # Ensemble size
+#NNODES=660    # Number of nodes
 
 PPN=1              # Number of processes per node
 

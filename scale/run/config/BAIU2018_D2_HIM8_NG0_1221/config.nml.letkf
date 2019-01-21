@@ -68,7 +68,7 @@
 
 &PARAM_LETKF_OBS
 ! Honda et al. 2018JGRA
- HORI_LOCAL =  60.0D3,   -1.,   -1.,   -1.,   -1.,   -1.,   -1.,   -1.,   -1.,   -1.,
+ HORI_LOCAL =  120.0D3,   -1.,   -1.,   -1.,   -1.,   -1.,   -1.,   -1.,   -1.,   -1.,
                   -1.,   -1.,   -1.,   -1.,   -1.,   -1.,   -1.,   -1.,   -1.,   -1.,
                   -1., 4.0D3,  60.0d3, 200.0d3,
  VERT_LOCAL =   0.3D0,   -1.,   -1.,   -1.,   -1.,   -1.,   -1.,   -1.,   -1.,   -1.,
@@ -85,6 +85,9 @@
 /
 
 &PARAM_LETKF_H08
+ H08_SEED = .true.,
+ H08_CM_THRS = 1.0d0,
+ H08_CM_INOV = -10.0d0,
  H08_FORMAT_NC = .true.,
  H08_SIM_ALLG = .true.,
  H08_OBS_THIN_LEV = 6,

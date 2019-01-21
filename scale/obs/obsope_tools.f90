@@ -89,6 +89,7 @@ SUBROUTINE obsope_cal(obsda_return, nobs_extern)
   integer :: qc_H08_prep(nlon,nlat,NIRB_HIM8)
   real(r_size) :: zangle_H08(nlon,nlat)
   integer :: i8, j8, b8
+  integer :: tmp_qc
 
 
 #ifdef TCV
@@ -397,6 +398,8 @@ SUBROUTINE obsope_cal(obsda_return, nobs_extern)
 #ifdef H08
         obsda%lev(1:nobs) = 0.0d0
         obsda%val2(1:nobs) = 0.0d0
+        obsda%val_CM(1:nobs) = 0.0d0
+        obsda%val_RH(1:nobs) = 0.0d0
 !        obsda%pred1(1:nobs) = 0.0d0
 !        obsda%pred2(1:nobs) = 0.0d0
 #endif
@@ -526,6 +529,15 @@ SUBROUTINE obsope_cal(obsda_return, nobs_extern)
             obsda%val2(nn) = (abs(yobs_H08_prep(i8,j8,b8-6) - yobs_H08_clr_prep(i8,j8,b8-6) )  &
                               + abs(obs(iof)%dat(n) - yobs_H08_clr_prep(i8,j8,b8-6)) ) * 0.5d0
 
+            obsda%val_CM(nn) = abs(yobs_H08_prep(i8,j8,b8-6) - yobs_H08_clr_prep(i8,j8,b8-6)) ! Cm
+
+            ! seeding at the 850 hPa level
+            call phys2ijk(v3dg(:,:,:,iv3dd_p), id_rh_obs, ril, rjl, 85000.0d0, rk, tmp_qc)
+            call Trans_XtoY(id_rh_obs, ril, rjl, 3.0d0, &
+                            obs(iof)%lon(n), obs(iof)%lat(n), v3dg, v2dg, obsda%val_RH(nn), tmp_qc)
+
+
+
 !            obsda%pred1(nn) = zangle_H08(i8,j8)  ! predictor (1)
 !            obsda%pred2(nn) = yobs_H08(i8,j8,b8-6) ! predictor (2)
 !
@@ -635,7 +647,7 @@ SUBROUTINE obsope_cal(obsda_return, nobs_extern)
       ! 
       if (present(obsda_return)) then
 #ifdef H08
-        call obs_da_value_partial_reduce_iter(obsda_return, it, 1, nobs, obsda%val, obsda%qc, obsda%lev, obsda%val2)!, obsda%pred1, obsda%pred2)
+        call obs_da_value_partial_reduce_iter(obsda_return, it, 1, nobs, obsda%val, obsda%val_CM, obsda%val_RH, obsda%qc, obsda%lev, obsda%val2)!, obsda%pred1, obsda%pred2)
 #else
         call obs_da_value_partial_reduce_iter(obsda_return, it, 1, nobs, obsda%val, obsda%qc)
 #endif

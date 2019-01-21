@@ -270,6 +270,9 @@ MODULE common_nml
   character(filelenmax) :: H08_RTTOV_COEF_PATH = '.'
   character(filelenmax) :: H08_VBC_PATH = '.'
   character(filelenmax) :: H08_OUTFILE_BASENAME = 'him8'
+  logical :: H08_SEED = .false.
+  real(r_size) :: H08_CM_THRS = 1.0d0
+  real(r_size) :: H08_SEED_INOV = -10.0d0
   logical :: H08_FORMAT_NC = .false.
   logical :: H08_SIM_ALLG = .true. ! Him8 sim by using ensemble mean
   logical :: H08_OBS_STD = .true.
@@ -931,6 +934,9 @@ subroutine read_nml_letkf_h08
   integer :: ierr
 
   namelist /PARAM_LETKF_H08/ &
+    H08_SEED, &
+    H08_CM_THRS, &
+    H08_SEED_INOV, &
     H08_FORMAT_NC, &
     H08_SIM_ALLG, &
     H08_NOWDATE, &
