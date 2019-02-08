@@ -1,5 +1,3 @@
-## test
-##
 
 .PHONY: all clean
 
