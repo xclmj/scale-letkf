@@ -102,7 +102,7 @@ PROGRAM dec_prepbufr
     !
     ! obs
     !
-    CALL UFBEVN(11,prs,4,maxlev,maxevn,nilev,'POB POE PQM PPC')
+    CALL UFBEVN(11,prs,5,maxlev,maxevn,nilev,'POB POE PQM PPC PRC')
     IF(obtype == 'ADPSFC' .OR.&
      & obtype == 'SFCSHP' .OR.&
      & obtype == 'SFCBOG') CALL output_ps ! surface pressure report
